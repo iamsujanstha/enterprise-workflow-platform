@@ -1,0 +1,40 @@
+graph TB
+    subgraph "AWS Cloud"
+        subgraph "VPC"
+            subgraph "Public Subnet"
+                ALB[Application Load Balancer]
+                NAT[NAT Gateway]
+            end
+            
+            subgraph "Private Subnet"
+                ECS1[ECS Task - Auth Service 1]
+                ECS2[ECS Task - Auth Service 2]
+                ECS3[ECS Task - Auth Service 3]
+            end
+            
+            subgraph "Data Layer"
+                ElastiCache[ElastiCache Redis]
+                MongoDB[DocumentDB/MongoDB Atlas]
+            end
+        end
+        
+        Secrets[Secrets Manager]
+        CloudWatch[CloudWatch Logs & Metrics]
+    end
+    
+    Internet[Internet] --> ALB
+    ALB --> ECS1
+    ALB --> ECS2
+    ALB --> ECS3
+    ECS1 --> ElastiCache
+    ECS1 --> MongoDB
+    ECS2 --> ElastiCache
+    ECS2 --> MongoDB
+    ECS3 --> ElastiCache
+    ECS3 --> MongoDB
+    ECS1 --> Secrets
+    ECS2 --> Secrets
+    ECS3 --> Secrets
+    ECS1 --> CloudWatch
+    ECS2 --> CloudWatch
+    ECS3 --> CloudWatch

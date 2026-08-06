@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant Client
+    participant Controller
+    participant Service
+    participant JWT
+    participant Repository
+    participant MongoDB
+    participant Redis
+
+    Client->>Controller: POST /auth/login
+    Controller->>Service: login(email, password)
+    Service->>Repository: findByEmail(email)
+    Repository->>MongoDB: query users
+    MongoDB-->>Repository: user document
+    Repository-->>Service: user
+    Service->>Service: bcrypt.compare(password)
+    Service->>JWT: generateTokens(user)
+    JWT->>Redis: store session
+    Redis-->>JWT: session stored
+    JWT-->>Service: {access, refresh}
+    Service-->>Controller: AuthResponse
+    Controller-->>Client: 200 OK {tokens, user}

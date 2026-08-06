@@ -1,0 +1,30 @@
+# Frontend Application
+
+React + TypeScript + TailwindCSS web application.
+
+## Structure (to be created)
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   ├── features/
+│   ├── hooks/
+│   ├── pages/
+│   ├── services/
+│   ├── store/
+│   └── utils/
+├── public/
+├── package.json
+└── tsconfig.json
+```
+
+## Tech Stack
+
+- React 18
+- TypeScript 5
+- TailwindCSS 3
+- React Query
+- Zustand
+- React Router 6
+- Axios

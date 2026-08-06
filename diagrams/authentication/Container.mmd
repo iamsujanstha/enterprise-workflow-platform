@@ -1,0 +1,10 @@
+graph TB
+    Client[Client] --> ALB[Application Load Balancer]
+    ALB --> AuthController[Auth Controller]
+    AuthController --> AuthService[Auth Service]
+    AuthService --> JWTService[JWT Service]
+    AuthService --> SessionService[Session Service]
+    AuthService --> UserRepository[User Repository]
+    UserRepository --> MongoDB[(MongoDB)]
+    SessionService --> Redis[(Redis)]
+    JWTService --> Redis

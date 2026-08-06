@@ -1,0 +1,34 @@
+# Worker Application
+
+Background job processor for async tasks.
+
+## Structure (to be created)
+
+```
+worker/
+├── src/
+│   ├── processors/
+│   │   ├── notification.processor.ts
+│   │   ├── email.processor.ts
+│   │   └── analytics.processor.ts
+│   ├── services/
+│   └── main.ts
+├── package.json
+└── tsconfig.json
+```
+
+## Jobs Handled
+
+- Email notifications
+- Push notifications
+- Data aggregation
+- Report generation
+- File processing
+- Search indexing
+
+## Tech Stack
+
+- Node.js 20
+- Bull
+- Redis
+- Shared backend services

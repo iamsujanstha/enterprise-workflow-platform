@@ -1,0 +1,37 @@
+# Backend Application
+
+Node.js + NestJS + TypeScript API server.
+
+## Structure (to be created)
+
+```
+backend/
+├── src/
+│   ├── auth/
+│   ├── notification/
+│   ├── organization/
+│   ├── project/
+│   ├── task/
+│   ├── comment/
+│   ├── user/
+│   ├── common/
+│   │   ├── guards/
+│   │   ├── decorators/
+│   │   ├── filters/
+│   │   └── interceptors/
+│   └── main.ts
+├── test/
+├── package.json
+└── tsconfig.json
+```
+
+## Tech Stack
+
+- Node.js 20
+- NestJS 10
+- TypeScript 5
+- MongoDB (Mongoose)
+- Redis (ioredis)
+- Bull (queue)
+- Passport (auth)
+- Socket.io (WebSocket)

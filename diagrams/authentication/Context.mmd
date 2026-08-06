@@ -1,0 +1,11 @@
+graph TB
+    User[User] --> WebApp[Web Application]
+    User --> MobileApp[Mobile App]
+    WebApp --> AuthService[Authentication Service]
+    MobileApp --> AuthService
+    AuthService --> MongoDB[(MongoDB - Users)]
+    AuthService --> Redis[(Redis - Sessions)]
+    AuthService --> OAuth[OAuth Providers]
+    OAuth --> Google[Google]
+    OAuth --> GitHub[GitHub]
+    OAuth --> Microsoft[Microsoft]
