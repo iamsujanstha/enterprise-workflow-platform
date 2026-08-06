@@ -1,22 +1,56 @@
 sequenceDiagram
-    participant Client
-    participant Controller
-    participant Service
-    participant JWT
-    participant Repository
-    participant MongoDB
-    participant Redis
+    autonumber
+    title Email + Password Login with TOTP MFA — Happy Path
 
-    Client->>Controller: POST /auth/login
-    Controller->>Service: login(email, password)
-    Service->>Repository: findByEmail(email)
-    Repository->>MongoDB: query users
-    MongoDB-->>Repository: user document
-    Repository-->>Service: user
-    Service->>Service: bcrypt.compare(password)
-    Service->>JWT: generateTokens(user)
-    JWT->>Redis: store session
-    Redis-->>JWT: session stored
-    JWT-->>Service: {access, refresh}
-    Service-->>Controller: AuthResponse
-    Controller-->>Client: 200 OK {tokens, user}
+    participant C as Client (Browser)
+    participant NX as Next.js
+    participant API as Auth API (NestJS)
+    participant R as Redis (ElastiCache)
+    participant M as MongoDB Atlas
+    participant SES as AWS SES
+
+    C->>NX: POST /api/auth/login { email, password }
+    NX->>API: Forward request (internal VPC)
+
+    note over API,R: Rate limit checks (shared counters across all API instances)
+    API->>R: GET login_fail_account:{email}
+    R-->>API: count (e.g. 1 of 5 allowed)
+    API->>R: GET login_fail_ip:{ip}
+    R-->>API: count (e.g. 3 of 100 allowed)
+
+    API->>M: users.findOne({ email: "user@example.com" })
+    M-->>API: user document
+
+    note over API: bcrypt.compare(password, user.passwordHash) ~300ms async
+    API->>API: Verify password (bcrypt cost 12)
+
+    note over API,R: MFA Challenge — prove password before issuing full session
+    API->>R: SET mfa_challenge:{challengeId} {userId, exp:+5min}
+    API-->>C: 200 { status: "MFA_REQUIRED", mfaChallenge: "ch_abc" }
+
+    C->>API: POST /api/auth/mfa/verify { challengeId, totpToken }
+    API->>R: GET mfa_challenge:{challengeId}
+    R-->>API: { userId }
+    API->>API: TOTP.verify(token, secret, ±30s tolerance)
+
+    note over API: Device fingerprint for suspicious login detection
+    API->>API: Compute Device_Fingerprint (UA + Accept-Language + platform)
+    API->>API: Compare vs user.deviceFingerprints (90-day window)
+
+    alt Suspicious login (new device or country)
+        API--)SES: Async: Send security alert email (non-blocking)
+    end
+
+    note over API,R: Issue tokens and create session
+    API->>API: generateRefreshToken() → 256-bit opaque random
+    API->>API: generateAccessToken(user, kid:v2) → JWT HS256 (15min)
+    API->>R: HSET session:{sessionId} { userId, SHA256(refreshToken), familyId, familyVersion:1, fingerprint, ip, ua }
+    API->>R: SADD user_sessions:{userId} sessionId
+    API->>R: DEL login_fail_account:{email}
+
+    note over API,M: Append-only audit entry
+    API->>M: audit_logs.insertOne({ event:'login_success', userId, ip, ua, correlationId })
+
+    API-->>NX: 200 { accessToken } + Set-Cookie: refreshToken; HttpOnly; Secure; SameSite=Strict; Path=/api/auth/refresh
+    NX-->>C: Auth response + cookie
+    note over C: accessToken stored in Zustand (memory only — never localStorage)

@@ -1,11 +1,23 @@
-graph TB
-    User[User] --> WebApp[Web Application]
-    User --> MobileApp[Mobile App]
-    WebApp --> AuthService[Authentication Service]
-    MobileApp --> AuthService
-    AuthService --> MongoDB[(MongoDB - Users)]
-    AuthService --> Redis[(Redis - Sessions)]
-    AuthService --> OAuth[OAuth Providers]
-    OAuth --> Google[Google]
-    OAuth --> GitHub[GitHub]
-    OAuth --> Microsoft[Microsoft]
+C4Context
+    title Authentication System — System Context
+
+    Person(user, "User", "Knowledge worker, Admin, or external partner accessing the workflow platform")
+    Person(admin, "Platform Admin", "Manages org members, roles, and access revocation")
+
+    System(authSystem, "Authentication System", "Verifies identity, manages sessions, enforces RBAC, and provides audit trail for the enterprise workflow platform")
+
+    System_Ext(google, "Google OAuth2", "Identity provider for Google Workspace enterprise customers")
+    System_Ext(github, "GitHub OAuth2", "Identity provider for engineering and developer teams")
+    System_Ext(ses, "AWS SES", "Transactional email: verification, password reset, security alerts")
+    System_Ext(hibp, "HaveIBeenPwned API", "k-anonymity SHA-1 prefix check for breached passwords")
+    System_Ext(ipRep, "IP Reputation Service", "Risk scoring for proxies, VPNs, and botnet IPs")
+    System_Ext(secretsManager, "AWS Secrets Manager", "JWT signing keys, OAuth credentials — never in env vars")
+
+    Rel(user, authSystem, "Registers, authenticates, manages sessions and MFA", "HTTPS")
+    Rel(admin, authSystem, "Manages users, revokes sessions, exports compliance audit logs", "HTTPS")
+    Rel(authSystem, google, "OAuth2 authorization code exchange", "HTTPS")
+    Rel(authSystem, github, "OAuth2 authorization code exchange", "HTTPS")
+    Rel(authSystem, ses, "Sends transactional and security alert emails", "HTTPS / AWS SDK")
+    Rel(authSystem, hibp, "k-anonymity password breach check (SHA-1 prefix only)", "HTTPS")
+    Rel(authSystem, ipRep, "IP risk score lookup — non-blocking", "HTTPS")
+    Rel(authSystem, secretsManager, "Fetches and rotates JWT signing keys (kid-versioned)", "AWS SDK")

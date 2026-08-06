@@ -1,40 +1,43 @@
-graph TB
-    subgraph "AWS Cloud"
-        subgraph "VPC"
-            subgraph "Public Subnet"
-                ALB[Application Load Balancer]
-                NAT[NAT Gateway]
-            end
-            
-            subgraph "Private Subnet"
-                ECS1[ECS Task - Auth Service 1]
-                ECS2[ECS Task - Auth Service 2]
-                ECS3[ECS Task - Auth Service 3]
-            end
-            
-            subgraph "Data Layer"
-                ElastiCache[ElastiCache Redis]
-                MongoDB[DocumentDB/MongoDB Atlas]
-            end
-        end
-        
-        Secrets[Secrets Manager]
-        CloudWatch[CloudWatch Logs & Metrics]
-    end
-    
-    Internet[Internet] --> ALB
-    ALB --> ECS1
-    ALB --> ECS2
-    ALB --> ECS3
-    ECS1 --> ElastiCache
-    ECS1 --> MongoDB
-    ECS2 --> ElastiCache
-    ECS2 --> MongoDB
-    ECS3 --> ElastiCache
-    ECS3 --> MongoDB
-    ECS1 --> Secrets
-    ECS2 --> Secrets
-    ECS3 --> Secrets
-    ECS1 --> CloudWatch
-    ECS2 --> CloudWatch
-    ECS3 --> CloudWatch
+C4Deployment
+    title Authentication System — AWS Deployment (Phase 2: 10K–100K users)
+
+    Deployment_Node(aws, "AWS us-east-1") {
+
+        Deployment_Node(vpc, "VPC 10.0.0.0/16") {
+
+            Deployment_Node(pub_a, "Public Subnet AZ-a (10.0.1.0/24)") {
+                Container(alb, "Application Load Balancer", "AWS ALB", "TLS 1.3 termination, health checks, weighted routing, access logs to S3")
+            }
+
+            Deployment_Node(pub_b, "Public Subnet AZ-b (10.0.2.0/24)") {
+                Container(alb_b, "ALB secondary node", "AWS ALB", "Multi-AZ for availability")
+            }
+
+            Deployment_Node(priv_a, "Private Subnet AZ-a (10.0.10.0/24)") {
+                Container(nginx_a, "Nginx ECS Task", "Fargate 0.5 vCPU / 1GB", "Rate limiting 100 req/min/IP, routing /api/* to NestJS, / to Next.js")
+                Container(next_a, "Next.js ECS Task x2", "Fargate 1 vCPU / 2GB", "SSR auth pages, middleware route protection")
+                Container(nest_a, "NestJS Auth API x3", "Fargate 1 vCPU / 2GB", "Auth endpoints, JWT guards, RBAC, audit logging")
+            }
+
+            Deployment_Node(priv_b, "Private Subnet AZ-b (10.0.11.0/24)") {
+                Container(nginx_b, "Nginx ECS Task", "Fargate 0.5 vCPU / 1GB", "AZ-b Nginx")
+                Container(next_b, "Next.js ECS Task x2", "Fargate 1 vCPU / 2GB", "AZ-b Next.js")
+                Container(nest_b, "NestJS Auth API x3", "Fargate 1 vCPU / 2GB", "AZ-b Auth API")
+            }
+
+            Deployment_Node(data_a, "Data Subnet AZ-a (10.0.20.0/24)") {
+                ContainerDb(mongo_primary, "MongoDB Atlas Primary", "Atlas M30 (4 vCPU / 16GB RAM)", "Primary node — user writes, audit writes")
+                ContainerDb(redis_primary, "ElastiCache Redis Primary", "r7g.xlarge (4 vCPU / 32GB RAM)", "Session writes, rate counter INCR")
+            }
+
+            Deployment_Node(data_b, "Data Subnet AZ-b (10.0.21.0/24)") {
+                ContainerDb(mongo_secondary, "MongoDB Atlas Secondary x2", "Atlas M30 (4 vCPU / 16GB RAM each)", "Reads for user profile cache; auto-promotes on primary failure")
+                ContainerDb(redis_replica, "ElastiCache Redis Replica", "r7g.xlarge (4 vCPU / 32GB RAM)", "Read replica for profile cache; auto-promotes on primary failure")
+            }
+        }
+
+        Container(cloudwatch, "CloudWatch", "AWS CloudWatch", "Structured logs, metrics (auth.login.*, auth.response_time), alarms, Logs Insights queries")
+        Container(secretsMgr, "Secrets Manager", "AWS Secrets Manager", "JWT signing keys (kid-versioned), OAuth client credentials, bcrypt pepper")
+        Container(ses_service, "SES", "AWS SES us-east-1", "Transactional email: verification, reset, security alerts")
+        Container(waf, "WAF", "AWS WAF v2", "OWASP rule set, geo-blocking, IP blocklist enforcement")
+    }

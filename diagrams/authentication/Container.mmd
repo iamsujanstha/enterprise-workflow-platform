@@ -1,10 +1,33 @@
-graph TB
-    Client[Client] --> ALB[Application Load Balancer]
-    ALB --> AuthController[Auth Controller]
-    AuthController --> AuthService[Auth Service]
-    AuthService --> JWTService[JWT Service]
-    AuthService --> SessionService[Session Service]
-    AuthService --> UserRepository[User Repository]
-    UserRepository --> MongoDB[(MongoDB)]
-    SessionService --> Redis[(Redis)]
-    JWTService --> Redis
+C4Container
+    title Authentication System — Container Diagram
+
+    Person(user, "User", "Browser or Mobile client")
+    Person(admin, "Platform Admin", "Browser")
+
+    Container(nextApp, "Next.js App", "Next.js 14, TypeScript, React", "SSR auth pages, Zustand auth state, silent token refresh interceptor, Next.js middleware route protection")
+    Container(nginx, "Nginx", "Nginx 1.25, OpenResty", "TLS termination, rate limiting (100 req/min/IP), request routing to upstream services")
+    Container(nestAPI, "Auth API", "NestJS, TypeScript, Passport.js", "Auth endpoints, JWT guards, RBAC enforcement, session management, event emission, audit logging")
+    Container(worker, "Background Worker", "NestJS Worker, BullMQ", "Email delivery retry queue, audit log flush, async security alert dispatch")
+
+    ContainerDb(mongo, "User Store", "MongoDB Atlas M30+", "users, audit_logs, password_reset_tokens, email_verification_tokens collections")
+    ContainerDb(redis, "Session Store / Cache", "AWS ElastiCache Redis 7", "Sessions (HASH), user session index (SET), token family chains, rate limit counters, JWT key cache")
+
+    System_Ext(ses, "AWS SES", "Transactional email delivery")
+    System_Ext(google, "Google OAuth2", "accounts.google.com")
+    System_Ext(github, "GitHub OAuth2", "github.com/login/oauth")
+    System_Ext(secrets, "AWS Secrets Manager", "JWT signing keys per kid version")
+    System_Ext(ipRep, "IP Reputation Service", "AbuseIPDB or equivalent")
+
+    Rel(user, nginx, "HTTPS requests", "TLS 1.3 / HTTP/2")
+    Rel(admin, nginx, "HTTPS requests", "TLS 1.3 / HTTP/2")
+    Rel(nginx, nextApp, "Web page requests", "HTTP/2 (internal VPC)")
+    Rel(nginx, nestAPI, "API requests /api/auth/*", "HTTP/2 (internal VPC)")
+    Rel(nextApp, nestAPI, "Auth API calls (SSR + client-side)", "HTTP/2 (internal VPC)")
+    Rel(nestAPI, mongo, "User CRUD, audit writes, token operations", "MongoDB Wire Protocol 6")
+    Rel(nestAPI, redis, "Session R/W, cache reads, rate counter INCR", "RESP3")
+    Rel(nestAPI, worker, "Enqueue email jobs via BullMQ", "Redis queue")
+    Rel(worker, ses, "Send transactional and alert emails", "AWS SDK HTTPS")
+    Rel(nestAPI, google, "OAuth2 authorization code exchange", "HTTPS")
+    Rel(nestAPI, github, "OAuth2 authorization code exchange", "HTTPS")
+    Rel(nestAPI, secrets, "Fetch JWT signing keys (5-min TTL cache)", "AWS SDK")
+    Rel(nestAPI, ipRep, "IP risk score lookup (non-blocking)", "HTTPS")
