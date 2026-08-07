@@ -1,29 +1,41 @@
-FROM node:20-alpine AS builder
-
+# ── Stage 1: dependencies ─────────────────────────────────────────────────────
+FROM node:20-alpine AS deps
 WORKDIR /app
+# Copy only package files first — layer cache means npm ci only re-runs
+# when dependencies change, not on every source change
+COPY apps/backend/package*.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-COPY package*.json ./
+# ── Stage 2: build ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY apps/backend/package*.json ./
 RUN npm ci
-
-# Copy source
-COPY . .
-
-# Build
+COPY apps/backend/ .
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# ── Stage 3: production runtime ───────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+# Run as non-root — limits blast radius if the container is compromised
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nestjs
 
 WORKDIR /app
 
-# Copy built app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=deps    --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/dist         ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
+
+USER nestjs
 
 ENV NODE_ENV=production
+ENV PORT=3000
 
 EXPOSE 3000
 
+# Use node directly — not npm start; node is PID 1 and handles SIGTERM correctly
 CMD ["node", "dist/main.js"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/v1/auth/health || exit 1

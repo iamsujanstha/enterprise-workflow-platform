@@ -1,25 +1,29 @@
 version: '3.8'
 
 services:
-  # Backend API
+  # Backend Auth API
   backend:
     build:
-      context: ../../apps/backend
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.backend
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/enterprise-workflow
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=dev-secret-change-in-production
-      - PORT=3000
+    env_file:
+      - ../../apps/backend/.env
     depends_on:
-      - mongo
-      - redis
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
-      - ../../apps/backend/src:/app/src
+      - ../../apps/backend/src:/app/src:ro
     command: npm run start:dev
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/v1/auth/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   # Frontend
   frontend:
@@ -57,7 +61,12 @@ services:
     volumes:
       - mongo_data:/data/db
     environment:
-      - MONGO_INITDB_DATABASE=enterprise-workflow
+      - MONGO_INITDB_DATABASE=auth
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis
   redis:
@@ -66,7 +75,12 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --save 60 1 --loglevel warning --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # Nginx (optional - for production-like setup)
   nginx:
