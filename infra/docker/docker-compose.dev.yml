@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.dev.yml  —  DEV OVERRIDES
+#
+# Run:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  backend:
+    build:
+      target: builder           # stop at builder stage — skip optimized runner
+    command: npm run start:dev  # hot-reload with nest watch
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../../apps/backend/src:/app/src:ro    # mount source for hot-reload
+      - ../../apps/backend/.env:/app/.env:ro
+    ports:
+      - "3000:3000"             # expose directly for Postman / curl in dev
+      - "9229:9229"             # Node debugger port
+
+  frontend:
+    build:
+      target: builder
+    command: npm run dev        # next dev with HMR
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../../apps/frontend/src:/app/src:ro   # mount source for HMR
+    ports:
+      - "3001:3001"             # expose directly for browser in dev
+
+  mongo:
+    ports:
+      - "27017:27017"           # expose fully in dev for MongoDB Compass
+
+  redis:
+    ports:
+      - "6379:6379"             # expose fully in dev for Redis Insight / CLI
+
+  nginx:
+    profiles:
+      - prod                    # disable nginx in dev — hit services directly

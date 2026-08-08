@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 import { EmailProcessor } from './processors/email.processor';
 import { SessionCleanupProcessor } from './processors/session-cleanup.processor';
 import { REDIS_CLIENT, redisProvider } from '../common/config/redis.config';

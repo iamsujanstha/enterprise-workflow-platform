@@ -14,7 +14,7 @@ const PUBLIC_ROUTES = [
 // Auth routes — redirect to dashboard if already authenticated
 const AUTH_ONLY_ROUTES = ['/login', '/register'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublic = PUBLIC_ROUTES.some((r) => pathname.startsWith(r));

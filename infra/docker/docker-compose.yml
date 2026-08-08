@@ -1,23 +1,80 @@
-version: '3.8'
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml  —  BASE (shared by dev + prod overrides)
+#
+# Usage:
+#   Dev:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Prod: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
-  # Backend Auth API
+
+  # ── MongoDB ─────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"   # bind to localhost only — never expose to internet
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    environment:
+      MONGO_INITDB_DATABASE: auth
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"     # localhost only
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+        --save 60 1
+        --loglevel warning
+        --appendonly yes
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend ──────────────────────────────────────────────────────────────────
   backend:
     build:
       context: ../../
       dockerfile: infra/docker/Dockerfile.backend
-    ports:
-      - "3000:3000"
+    restart: unless-stopped
+    expose:
+      - "3000"                      # internal only — nginx proxies to it
     env_file:
       - ../../apps/backend/.env
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/auth
+      REDIS_URL: redis://redis:6379
     depends_on:
       mongo:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ../../apps/backend/src:/app/src:ro
-    command: npm run start:dev
+    logging: *default-logging
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/v1/auth/health"]
       interval: 30s
@@ -25,76 +82,46 @@ services:
       retries: 3
       start_period: 60s
 
-  # Frontend
+  # ── Frontend ─────────────────────────────────────────────────────────────────
   frontend:
     build:
-      context: ../../apps/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "5173:5173"
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost/api
+    restart: unless-stopped
+    expose:
+      - "3001"                      # internal only — nginx proxies to it
     environment:
-      - VITE_API_URL=http://localhost:3000
-    volumes:
-      - ../../apps/frontend/src:/app/src
-    command: npm run dev
-
-  # Worker
-  worker:
-    build:
-      context: ../../apps/backend
-      dockerfile: Dockerfile.worker
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo:27017/enterprise-workflow
-      - REDIS_URL=redis://redis:6379
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      NODE_ENV: production
     depends_on:
-      - mongo
-      - redis
-    command: npm run start:worker
-
-  # MongoDB
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=auth
+      - backend
+    logging: *default-logging
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/"]
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
+      start_period: 30s
 
-  # Redis
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --save 60 1 --loglevel warning --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-  # Nginx (optional - for production-like setup)
+  # ── Nginx reverse proxy ───────────────────────────────────────────────────────
   nginx:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ../nginx/conf.d:/etc/nginx/conf.d
+      - ../../infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../infra/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    logging: *default-logging
 
 volumes:
   mongo_data:
+  mongo_config:
   redis_data:

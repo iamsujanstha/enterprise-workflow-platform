@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { getQueueToken } from '@nestjs/bull';
+import { getQueueToken } from '@nestjs/bullmq';
 import { AuthService } from './auth.service';
 import { PasswordService } from './services/password.service';
 import { TokenService } from './services/token.service';

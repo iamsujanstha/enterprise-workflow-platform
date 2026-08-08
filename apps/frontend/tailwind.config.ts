@@ -1,5 +1,7 @@
 import type { Config } from 'tailwindcss';
 
+// Tailwind CSS v4 — configuration is now primarily CSS-first via globals.css.
+// This file retains only brand token overrides for editor tooling compatibility.
 const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',

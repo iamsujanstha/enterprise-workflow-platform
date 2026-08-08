@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
@@ -36,17 +36,14 @@ import { validate } from './common/config/env.validation';
       }),
     }),
 
-    // Bull queue backed by Redis
+    // BullMQ queue backed by Redis
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
-        redis: cfg.getOrThrow('REDIS_URL'),
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 60_000 },
-          removeOnComplete: 100,
-          removeOnFail: 500,
+        connection: {
+          host: new URL(cfg.getOrThrow('REDIS_URL')).hostname,
+          port: Number(new URL(cfg.getOrThrow('REDIS_URL')).port) || 6379,
         },
       }),
     }),

@@ -1,6 +1,12 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+import path from 'path';
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',  // emits .next/standalone — tiny Docker images
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   async headers() {
     return [
       {
@@ -19,4 +25,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

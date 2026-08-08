@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { InjectRedis } from '../common/config/redis.config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 import { Types } from 'mongoose';
 import { UserRepository } from '../users/user.repository';
