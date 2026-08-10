@@ -1,0 +1,225 @@
+/**
+ * Design Tokens — Single Source of Truth
+ *
+ * All visual decisions live here. Changing a token changes the entire product.
+ * Structure mirrors Airbnb's Bedrock: Primitive → Semantic → Component
+ *
+ * Layers:
+ *  1. Primitives   — raw values, no semantic meaning (never use directly in components)
+ *  2. Semantic     — meaning-based aliases of primitives (use these in components)
+ *  3. Component    — per-component overrides (rarely needed)
+ */
+
+@layer base {
+  :root {
+    /* ─── Primitive: Color Palette ─────────────────────────────────── */
+    --primitive-neutral-0:   #ffffff;
+    --primitive-neutral-50:  #f9fafb;
+    --primitive-neutral-100: #f3f4f6;
+    --primitive-neutral-200: #e5e7eb;
+    --primitive-neutral-300: #d1d5db;
+    --primitive-neutral-400: #9ca3af;
+    --primitive-neutral-500: #6b7280;
+    --primitive-neutral-600: #4b5563;
+    --primitive-neutral-700: #374151;
+    --primitive-neutral-800: #1f2937;
+    --primitive-neutral-900: #111827;
+    --primitive-neutral-950: #030712;
+
+    --primitive-brand-50:   #eff6ff;
+    --primitive-brand-100:  #dbeafe;
+    --primitive-brand-200:  #bfdbfe;
+    --primitive-brand-300:  #93c5fd;
+    --primitive-brand-400:  #60a5fa;
+    --primitive-brand-500:  #3b82f6;
+    --primitive-brand-600:  #2563eb;
+    --primitive-brand-700:  #1d4ed8;
+    --primitive-brand-800:  #1e40af;
+    --primitive-brand-900:  #1e3a8a;
+
+    --primitive-success-50:  #f0fdf4;
+    --primitive-success-500: #22c55e;
+    --primitive-success-600: #16a34a;
+    --primitive-success-700: #15803d;
+
+    --primitive-warning-50:  #fffbeb;
+    --primitive-warning-500: #f59e0b;
+    --primitive-warning-600: #d97706;
+
+    --primitive-error-50:    #fef2f2;
+    --primitive-error-100:   #fee2e2;
+    --primitive-error-500:   #ef4444;
+    --primitive-error-600:   #dc2626;
+    --primitive-error-700:   #b91c1c;
+
+    /* ─── Primitive: Spacing Scale (4px base) ──────────────────────── */
+    --space-0:    0px;
+    --space-0-5:  2px;
+    --space-1:    4px;
+    --space-1-5:  6px;
+    --space-2:    8px;
+    --space-2-5:  10px;
+    --space-3:    12px;
+    --space-3-5:  14px;
+    --space-4:    16px;
+    --space-5:    20px;
+    --space-6:    24px;
+    --space-7:    28px;
+    --space-8:    32px;
+    --space-10:   40px;
+    --space-12:   48px;
+    --space-14:   56px;
+    --space-16:   64px;
+    --space-20:   80px;
+    --space-24:   96px;
+
+    /* ─── Primitive: Typography ─────────────────────────────────────── */
+    --font-sans:  'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono:  ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+
+    --text-xs:    0.75rem;    /* 12px */
+    --text-sm:    0.875rem;   /* 14px */
+    --text-base:  1rem;       /* 16px */
+    --text-lg:    1.125rem;   /* 18px */
+    --text-xl:    1.25rem;    /* 20px */
+    --text-2xl:   1.5rem;     /* 24px */
+    --text-3xl:   1.875rem;   /* 30px */
+    --text-4xl:   2.25rem;    /* 36px */
+
+    --leading-tight:  1.25;
+    --leading-snug:   1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+
+    --tracking-tight:  -0.025em;
+    --tracking-normal:  0em;
+    --tracking-wide:    0.025em;
+
+    --font-normal:  400;
+    --font-medium:  500;
+    --font-semibold: 600;
+    --font-bold:    700;
+
+    /* ─── Primitive: Border Radius ──────────────────────────────────── */
+    --radius-none: 0px;
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:   12px;
+    --radius-xl:   16px;
+    --radius-2xl:  20px;
+    --radius-full: 9999px;
+
+    /* ─── Primitive: Shadows ────────────────────────────────────────── */
+    --shadow-xs:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.10), 0 4px 6px -4px rgb(0 0 0 / 0.10);
+    --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.10);
+    --shadow-auth: 0 8px 40px -8px rgb(37 99 235 / 0.15), 0 2px 12px -2px rgb(0 0 0 / 0.08);
+
+    /* ─── Primitive: Animation ──────────────────────────────────────── */
+    --duration-fast:   100ms;
+    --duration-normal: 200ms;
+    --duration-slow:   300ms;
+    --ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-in:         cubic-bezier(0.4, 0, 1, 1);
+    --ease-out:        cubic-bezier(0, 0, 0.2, 1);
+    --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ─── Semantic: Surface ─────────────────────────────────────────── */
+    --color-bg-base:      var(--primitive-neutral-50);
+    --color-bg-surface:   var(--primitive-neutral-0);
+    --color-bg-subtle:    var(--primitive-neutral-100);
+    --color-bg-muted:     var(--primitive-neutral-200);
+    --color-bg-inverse:   var(--primitive-neutral-900);
+
+    /* ─── Semantic: Text ────────────────────────────────────────────── */
+    --color-text-primary:   var(--primitive-neutral-900);
+    --color-text-secondary: var(--primitive-neutral-600);
+    --color-text-muted:     var(--primitive-neutral-400);
+    --color-text-inverse:   var(--primitive-neutral-0);
+    --color-text-link:      var(--primitive-brand-600);
+    --color-text-link-hover: var(--primitive-brand-700);
+
+    /* ─── Semantic: Brand ───────────────────────────────────────────── */
+    --color-brand-default:  var(--primitive-brand-600);
+    --color-brand-hover:    var(--primitive-brand-700);
+    --color-brand-active:   var(--primitive-brand-800);
+    --color-brand-subtle:   var(--primitive-brand-50);
+    --color-brand-muted:    var(--primitive-brand-100);
+
+    /* ─── Semantic: Border ──────────────────────────────────────────── */
+    --color-border-default: var(--primitive-neutral-200);
+    --color-border-strong:  var(--primitive-neutral-300);
+    --color-border-brand:   var(--primitive-brand-500);
+    --color-border-error:   var(--primitive-error-500);
+
+    /* ─── Semantic: State ───────────────────────────────────────────── */
+    --color-error-bg:   var(--primitive-error-50);
+    --color-error-text: var(--primitive-error-700);
+    --color-error-border: var(--primitive-error-500);
+
+    --color-success-bg:   var(--primitive-success-50);
+    --color-success-text: var(--primitive-success-700);
+
+    --color-warning-bg:   var(--primitive-warning-50);
+    --color-warning-text: var(--primitive-warning-600);
+
+    /* ─── Semantic: Focus ───────────────────────────────────────────── */
+    --color-focus-ring:   var(--primitive-brand-500);
+    --focus-ring:         0 0 0 3px rgb(59 130 246 / 0.35);
+
+    /* ─── Component: Auth Card ──────────────────────────────────────── */
+    --auth-card-padding:  var(--space-8);
+    --auth-card-radius:   var(--radius-xl);
+    --auth-card-shadow:   var(--shadow-auth);
+    --auth-card-border:   var(--color-border-default);
+    --auth-card-max-width: 440px;
+
+    /* ─── Component: Input ──────────────────────────────────────────── */
+    --input-height:       44px;
+    --input-padding-x:    var(--space-3-5);
+    --input-padding-y:    var(--space-2-5);
+    --input-radius:       var(--radius-md);
+    --input-border:       var(--color-border-strong);
+    --input-bg:           var(--color-bg-surface);
+    --input-text:         var(--color-text-primary);
+    --input-placeholder:  var(--color-text-muted);
+    --input-focus-border: var(--color-border-brand);
+
+    /* ─── Component: Button ─────────────────────────────────────────── */
+    --btn-height-sm:   36px;
+    --btn-height-md:   44px;
+    --btn-height-lg:   52px;
+    --btn-radius:      var(--radius-md);
+    --btn-font-weight: var(--font-semibold);
+    --btn-transition:  all var(--duration-normal) var(--ease-default);
+  }
+
+  /* ─── Dark mode token overrides ──────────────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg-base:      var(--primitive-neutral-950);
+      --color-bg-surface:   var(--primitive-neutral-900);
+      --color-bg-subtle:    var(--primitive-neutral-800);
+      --color-bg-muted:     var(--primitive-neutral-700);
+
+      --color-text-primary:   var(--primitive-neutral-50);
+      --color-text-secondary: var(--primitive-neutral-400);
+      --color-text-muted:     var(--primitive-neutral-500);
+      --color-text-inverse:   var(--primitive-neutral-900);
+
+      --color-border-default: var(--primitive-neutral-800);
+      --color-border-strong:  var(--primitive-neutral-700);
+
+      --color-error-bg:   color-mix(in srgb, var(--primitive-error-700) 20%, transparent);
+      --color-success-bg: color-mix(in srgb, var(--primitive-success-700) 20%, transparent);
+
+      --input-bg:     var(--primitive-neutral-800);
+      --input-border: var(--primitive-neutral-600);
+      --input-text:   var(--primitive-neutral-50);
+
+      --auth-card-shadow: 0 8px 40px -8px rgb(0 0 0 / 0.5);
+    }
+  }
+}

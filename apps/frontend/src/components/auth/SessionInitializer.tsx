@@ -1,31 +1,26 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useAuthStore } from '@/lib/auth/auth-store';
+import { authClient } from '@/lib/auth/auth-client';
 
 /**
- * SessionInitializer — fires once on mount to restore auth state
- * from the httpOnly refresh token cookie via a silent /api/auth/refresh call.
- *
- * Renders nothing — purely a side-effect component.
+ * Fires once on mount to restore session from the httpOnly refresh token cookie.
+ * Renders nothing — pure side-effect.
  */
 export function SessionInitializer() {
-  useEffect(() => {
-    // Attempt a silent token refresh on app boot so Zustand auth state
-    // is populated without requiring the user to interact.
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+  const initialized = useRef(false);
+  const { setTokens, clearAuth, setStatus } = useAuthStore();
 
-    fetch(`${apiUrl}/api/v1/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include', // sends the httpOnly refresh token cookie
-    })
-      .then((res) => {
-        if (!res.ok) return; // not authenticated — that's fine
-        // If needed, parse the new access token and update Zustand store here
-      })
-      .catch(() => {
-        // Network error on boot — ignore silently
-      });
-  }, []);
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    setStatus('loading');
+    authClient
+      .refresh()
+      .then(({ accessToken, user }) => setTokens(accessToken, user))
+      .catch(() => clearAuth());
+  }, [setTokens, clearAuth, setStatus]);
 
   return null;
 }
