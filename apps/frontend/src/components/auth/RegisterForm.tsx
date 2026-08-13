@@ -76,8 +76,8 @@ export function RegisterForm() {
         </Alert>
         
         <div className="flex gap-3">
-          <Button asChild variant="outline" className="flex-1">
-            <Link href="/login">Sign in</Link>
+          <Button variant="outline" className="flex-1" render={<Link href="/login" />}>
+            Sign in
           </Button>
           <Button 
             variant="ghost" 

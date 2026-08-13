@@ -65,8 +65,8 @@ ps: ## Show running containers and their status
 	$(COMPOSE_DEV) ps
 
 health: ## Check health of all services
-	@echo "=== Backend ===" && curl -sf http://localhost:3000/api/v1/auth/health || echo "DOWN"
-	@echo "=== Frontend ===" && curl -sf http://localhost:3001/ -o /dev/null && echo "UP" || echo "DOWN"
+	@echo "=== Backend ===" && curl -sf http://localhost:3010/api/v1/auth/health || echo "DOWN"
+	@echo "=== Frontend ===" && curl -sf http://localhost:3011/ -o /dev/null && echo "UP" || echo "DOWN"
 	@echo "=== Redis ===" && docker compose -f infra/docker/docker-compose.yml exec redis redis-cli ping
 
 ## ── Cleanup ──────────────────────────────────────────────────────────────────

@@ -16,8 +16,10 @@ services:
       - ../../apps/backend/src:/app/src:ro    # mount source for hot-reload
       - ../../apps/backend/.env:/app/.env:ro
     ports:
-      - "3000:3000"             # expose directly for Postman / curl in dev
+      - "3010:3000"             # expose directly for Postman / curl in dev (host:container)
       - "9229:9229"             # Node debugger port
+    healthcheck:
+      disable: true             # builder image has no wget; app health verified via curl on host
 
   frontend:
     build:
@@ -28,15 +30,15 @@ services:
     volumes:
       - ../../apps/frontend/src:/app/src:ro   # mount source for HMR
     ports:
-      - "3001:3001"             # expose directly for browser in dev
+      - "3011:3001"             # expose directly for browser in dev (host:container)
 
   mongo:
     ports:
-      - "27017:27017"           # expose fully in dev for MongoDB Compass
+      - "27018:27017"           # expose for MongoDB Compass (host 27018 → container 27017)
 
   redis:
     ports:
-      - "6379:6379"             # expose fully in dev for Redis Insight / CLI
+      - "6380:6379"             # expose for Redis Insight / CLI (host 6380 → container 6379)
 
   nginx:
     profiles:

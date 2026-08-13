@@ -7,9 +7,10 @@ import { OAuthProfile } from '../services/oauth.service';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(configService: ConfigService) {
+    const clientID = configService.get('GOOGLE_CLIENT_ID', '');
     super({
-      clientID: configService.get('GOOGLE_CLIENT_ID', ''),
-      clientSecret: configService.get('GOOGLE_CLIENT_SECRET', ''),
+      clientID: clientID || 'DISABLED',
+      clientSecret: configService.get('GOOGLE_CLIENT_SECRET', 'DISABLED'),
       callbackURL: `${configService.get('OAUTH_CALLBACK_BASE_URL', 'http://localhost:3000')}/api/v1/auth/oauth/google/callback`,
       scope: ['email', 'profile'],
     });

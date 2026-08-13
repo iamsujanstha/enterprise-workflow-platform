@@ -8,8 +8,8 @@ import { OAuthProfile } from '../services/oauth.service';
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(configService: ConfigService) {
     super({
-      clientID: configService.get('GITHUB_CLIENT_ID', ''),
-      clientSecret: configService.get('GITHUB_CLIENT_SECRET', ''),
+      clientID: configService.get('GITHUB_CLIENT_ID', '') || 'DISABLED',
+      clientSecret: configService.get('GITHUB_CLIENT_SECRET', '') || 'DISABLED',
       callbackURL: `${configService.get('OAUTH_CALLBACK_BASE_URL', 'http://localhost:3000')}/api/v1/auth/oauth/github/callback`,
       scope: ['user:email'],
     });

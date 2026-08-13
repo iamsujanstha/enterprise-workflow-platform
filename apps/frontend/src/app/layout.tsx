@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <TooltipProvider delayDuration={300}>
+        <TooltipProvider delay={300}>
           <SessionInitializer />
           {children}
           <Toaster position="top-right" richColors closeButton />
