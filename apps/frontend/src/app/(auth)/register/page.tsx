@@ -1,43 +1,50 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { RegisterForm } from '@/components/auth/RegisterForm';
-import { Card } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: 'Sign up',
-  description: 'Create your account',
+  title: 'Create account',
 };
 
 export default function RegisterPage() {
   return (
-    <Card className="w-full max-w-md p-8 animate-slide-up">
-      <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your details to get started
-          </p>
-        </div>
-        
-        <Suspense fallback={<RegisterFormSkeleton />}>
-          <RegisterForm />
-        </Suspense>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Create your account
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Start your free trial — no credit card required
+        </p>
       </div>
-    </Card>
+
+      <Suspense fallback={<FormSkeleton />}>
+        <RegisterForm />
+      </Suspense>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Already have an account?{' '}
+        <Link href="/login" className="font-medium text-primary hover:underline underline-offset-4">
+          Sign in
+        </Link>
+      </p>
+    </div>
   );
 }
 
-function RegisterFormSkeleton() {
+function FormSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-pulse">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="space-y-2">
-          <div className="h-4 w-16 bg-muted animate-pulse rounded" />
-          <div className="h-10 bg-muted animate-pulse rounded-md" />
+        <div key={i} className="space-y-1.5">
+          <div className="h-3.5 w-14 bg-muted rounded" />
+          <div className="h-10 bg-muted rounded-lg" />
         </div>
       ))}
-      <div className="h-20 bg-muted animate-pulse rounded-md" />
-      <div className="h-10 bg-muted animate-pulse rounded-md" />
+      <div className="h-16 bg-muted rounded-lg" />
+      <div className="h-10 bg-muted rounded-lg" />
     </div>
   );
 }

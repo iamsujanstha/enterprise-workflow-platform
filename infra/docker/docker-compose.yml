@@ -88,7 +88,7 @@ services:
       context: ../../
       dockerfile: infra/docker/Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: http://localhost/api
+        NEXT_PUBLIC_API_URL: http://localhost
     restart: unless-stopped
     expose:
       - "3001"                      # internal only — nginx proxies to it

@@ -24,6 +24,8 @@ services:
   frontend:
     build:
       target: builder
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3010   # dev: backend exposed on host port 3010
     command: npm run dev        # next dev with HMR
     environment:
       NODE_ENV: development

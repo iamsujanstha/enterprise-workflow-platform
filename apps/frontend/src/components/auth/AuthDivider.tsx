@@ -1,16 +1,9 @@
-import { Separator } from '@/components/ui/separator';
-
 export function AuthDivider() {
   return (
-    <div className="relative">
-      <div className="absolute inset-0 flex items-center">
-        <Separator />
-      </div>
-      <div className="relative flex justify-center text-xs uppercase">
-        <span className="bg-background px-3 text-muted-foreground font-medium tracking-wide">
-          or
-        </span>
-      </div>
+    <div className="relative flex items-center gap-3 py-1">
+      <div className="flex-1 h-px bg-border" />
+      <span className="text-xs text-muted-foreground font-medium">or continue with</span>
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }

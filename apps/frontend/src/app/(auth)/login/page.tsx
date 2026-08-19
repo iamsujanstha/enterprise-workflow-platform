@@ -1,44 +1,49 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { Card } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Sign in',
-  description: 'Sign in to your account',
 };
 
 export default function LoginPage() {
   return (
-    <Card className="w-full max-w-md p-8 animate-slide-up">
-      <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your credentials to access your account
-          </p>
-        </div>
-        
-        <Suspense fallback={<LoginFormSkeleton />}>
-          <LoginForm />
-        </Suspense>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Welcome back
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Sign in to your account to continue
+        </p>
       </div>
-    </Card>
+
+      <Suspense fallback={<FormSkeleton rows={3} />}>
+        <LoginForm />
+      </Suspense>
+
+      <p className="text-center text-sm text-muted-foreground">
+        New here?{' '}
+        <Link href="/register" className="font-medium text-primary hover:underline underline-offset-4">
+          Create an account
+        </Link>
+      </p>
+    </div>
   );
 }
 
-function LoginFormSkeleton() {
+function FormSkeleton({ rows }: { rows: number }) {
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <div className="h-4 w-12 bg-muted animate-pulse rounded" />
-        <div className="h-10 bg-muted animate-pulse rounded-md" />
-      </div>
-      <div className="space-y-2">
-        <div className="h-4 w-16 bg-muted animate-pulse rounded" />
-        <div className="h-10 bg-muted animate-pulse rounded-md" />
-      </div>
-      <div className="h-10 bg-muted animate-pulse rounded-md" />
+    <div className="space-y-4 animate-pulse">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <div className="h-3.5 w-14 bg-muted rounded" />
+          <div className="h-10 bg-muted rounded-lg" />
+        </div>
+      ))}
+      <div className="h-10 bg-muted rounded-lg" />
     </div>
   );
 }

@@ -4,7 +4,10 @@
  * Protected endpoints use authClient.fetch.
  */
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+// NEXT_PUBLIC_API_URL = bare origin, e.g. http://localhost:3010 (dev) or https://api.example.com (prod)
+// It is baked into the bundle at build time by Next.js.
+// Paths in this file always start with /api/v1/... — never include a path prefix here.
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3010';
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API}${path}`, {

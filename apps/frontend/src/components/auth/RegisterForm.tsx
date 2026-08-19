@@ -13,7 +13,7 @@ import { OAuthButtons } from './OAuthButtons';
 import { AuthDivider } from './AuthDivider';
 import { useAuth } from '@/hooks/use-auth';
 import { usePasswordStrength } from '@/hooks/use-password-strength';
-import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 export function RegisterForm() {
   const [email, setEmail] = React.useState('');
@@ -21,69 +21,48 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState(false);
-  
+
   const { register, status } = useAuth();
   const passwordStrength = usePasswordStrength(password);
   const isLoading = status === 'loading';
-  
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
-  const isPasswordStrong = passwordStrength.score >= 3;
-  const canSubmit = email.trim() && passwordsMatch && isPasswordStrong && !isLoading;
+  const canSubmit = email.trim() && passwordsMatch && passwordStrength.score >= 3 && !isLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    if (!email.trim() || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    if (!isPasswordStrong) {
-      setError('Please create a stronger password');
-      return;
-    }
-
+    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
+    if (passwordStrength.score < 3) { setError('Please create a stronger password'); return; }
     try {
       await register(email.toLowerCase().trim(), password);
       setSuccess(true);
-      toast.success('Account created! Check your email to verify your account.');
+      toast.success('Account created! Check your email to verify.');
     } catch (err: any) {
-      const message = err?.error === 'EMAIL_ALREADY_EXISTS'
-        ? 'An account with this email already exists'
-        : err?.error === 'PASSWORD_FOUND_IN_BREACH'
-        ? 'This password has been found in a data breach. Please choose a different one.'
-        : 'Registration failed. Please try again.';
-      setError(message);
+      setError(
+        err?.error === 'EMAIL_ALREADY_EXISTS'   ? 'An account with this email already exists' :
+        err?.error === 'PASSWORD_FOUND_IN_BREACH'? 'This password appeared in a data breach. Choose another.' :
+        'Registration failed. Please try again.'
+      );
     }
   };
 
   if (success) {
     return (
-      <div className="space-y-4">
-        <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
-          <CheckCircle className="size-4 text-green-600" />
-          <AlertDescription className="text-green-700 dark:text-green-300">
-            Account created successfully! We've sent a verification email to{' '}
-            <span className="font-medium">{email}</span>. Please check your inbox and click the 
-            verification link to complete your registration.
-          </AlertDescription>
-        </Alert>
-        
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" render={<Link href="/login" />}>
+      <div className="space-y-5 text-center">
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-950/40 flex items-center justify-center border border-green-100 dark:border-green-900">
+          <CheckCircle className="size-7 text-green-600 dark:text-green-400" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-medium text-foreground">Verify your email</p>
+          <p className="text-sm text-muted-foreground">
+            We sent a verification link to <span className="font-medium text-foreground">{email}</span>
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex-1 h-10" render={<Link href="/login" />}>
             Sign in
           </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => setSuccess(false)}
-            className="flex-1"
-          >
+          <Button variant="ghost" className="flex-1 h-10" onClick={() => setSuccess(false)}>
             Register another
           </Button>
         </div>
@@ -93,15 +72,18 @@ export function RegisterForm() {
 
   return (
     <>
+      <OAuthButtons />
+      <AuthDivider />
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <Alert variant="destructive" className="animate-shake">
-            <AlertCircle className="size-4" />
-            <AlertDescription>{error}</AlertDescription>
+          <Alert variant="destructive" className="py-2.5">
+            <AlertCircle className="size-3.5" />
+            <AlertDescription className="text-sm">{error}</AlertDescription>
           </Alert>
         )}
-        
-        <div className="space-y-2">
+
+        <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -112,60 +94,55 @@ export function RegisterForm() {
             autoComplete="email"
             autoFocus
             disabled={isLoading}
+            className="h-10"
             required
           />
         </div>
-        
-        <div className="space-y-2">
+
+        <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>
           <PasswordInput
             id="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             placeholder="Create a strong password"
             autoComplete="new-password"
             disabled={isLoading}
+            className="h-10"
             required
           />
-          <PasswordStrengthBar password={password} />
+          {password && <PasswordStrengthBar password={password} />}
         </div>
-        
-        <div className="space-y-2">
+
+        <div className="space-y-1.5">
           <Label htmlFor="confirm-password">Confirm password</Label>
           <PasswordInput
             id="confirm-password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm your password"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+            placeholder="Repeat your password"
             autoComplete="new-password"
             disabled={isLoading}
-            aria-invalid={confirmPassword && !passwordsMatch ? 'true' : 'false'}
+            className="h-10"
             required
           />
           {confirmPassword && !passwordsMatch && (
-            <p className="text-xs text-red-600">Passwords do not match</p>
+            <p className="text-xs text-destructive">Passwords do not match</p>
           )}
         </div>
-        
-        <Button 
-          type="submit" 
-          className="w-full h-11"
-          disabled={!canSubmit}
-        >
+
+        <Button type="submit" className="w-full h-10 font-medium" disabled={!canSubmit}>
           {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
           Create account
         </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          By creating an account you agree to our{' '}
+          <a href="#" className="underline underline-offset-4 hover:text-foreground">Terms</a>
+          {' '}and{' '}
+          <a href="#" className="underline underline-offset-4 hover:text-foreground">Privacy Policy</a>
+        </p>
       </form>
-      
-      <AuthDivider />
-      <OAuthButtons />
-      
-      <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Sign in
-        </Link>
-      </p>
     </>
   );
 }
